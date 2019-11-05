@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -21,11 +22,6 @@ String convertedCelcious = "";
 Map responceData;
 class KlimateState extends State<Klimatic> {
   String _cityName;
-  var _time = responceData['timezone'];
-
-  /*var time = new DateTime.now();
-  var timeFormatting = DateTime.parse("");*/
-
 
   Future goToTakeDirectionScreen(BuildContext context) async {
     Map results = await Navigator.of(context)
@@ -38,14 +34,15 @@ class KlimateState extends State<Klimatic> {
     }
   }
 
-  void showData() async {
-    Map data = await getWeather(util.appID, util.defaultCity);
-    print(data.toString());
-  }
-
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
+    var df = new DateFormat('hh:mm a');
+    //var  myvalue = String.fromCharCode(responceData["timezone"]);
+    var myvalue = 19800;
+    var date = df.format(
+        new DateTime.fromMillisecondsSinceEpoch(myvalue * 1000));
+
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Weather App"),
@@ -82,16 +79,13 @@ class KlimateState extends State<Klimatic> {
               new Container(
                 /*alignment: Alignment.center,
             child: new Image.asset("images/light_rain.png"),*/
-                child: new Text("Updated: 11.25 AM", style:
-                new TextStyle(
-                    fontSize: 20,
-                    color: Colors.white
-                ),),
-
+                child: new Text(
+                  "Updated: $date",
+                  style: new TextStyle(fontSize: 20, color: Colors.white),
+                ),
               ),
             ],
           ),
-
           updateWidget(_cityName)
         ],
       ),
@@ -161,6 +155,7 @@ Widget updateWidget(String city) {
         // ignore: missing_return
         if (snapshot.hasData) {
           responceData = snapshot.data;
+          print(responceData["timezone"].toString());
           temperature = responceData['main']['temp'].toString();
           return new Container(
             margin: const EdgeInsets.fromLTRB(30, 250, 0, 0),
