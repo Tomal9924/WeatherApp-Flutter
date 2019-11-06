@@ -5,6 +5,7 @@ void main(){
   runApp(new MaterialApp(
 
     title: "Klimatic",
+    theme: ThemeData(fontFamily: 'Roboto'),
     home: new Klimatic(),
   ));
 }

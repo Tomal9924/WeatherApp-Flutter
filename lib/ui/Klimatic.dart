@@ -17,9 +17,13 @@ class Klimatic extends StatefulWidget {
   }
 }
 
-var temperature;
 String convertedCelcious = "";
 Map responceData;
+var timeResponceddata;
+var temperature;
+var now = new DateTime.now();
+var _weatherDescriptions = responceData['weather'][0]['description'];
+
 class KlimateState extends State<Klimatic> {
   String _cityName;
 
@@ -37,15 +41,11 @@ class KlimateState extends State<Klimatic> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    var df = new DateFormat('hh:mm a');
-    //var  myvalue = String.fromCharCode(responceData["timezone"]);
-    var myvalue = 19800;
-    var date = df.format(
-        new DateTime.fromMillisecondsSinceEpoch(myvalue * 1000));
 
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Weather App"),
+        backgroundColor: Colors.green.shade600,
         actions: <Widget>[
           new IconButton(
               icon: new Icon(Icons.menu),
@@ -57,30 +57,19 @@ class KlimateState extends State<Klimatic> {
       body: new Stack(
         children: <Widget>[
           new Container(
-            decoration: new BoxDecoration(color: Colors.lightBlue),
+            decoration: new BoxDecoration(color: Colors.green.shade400),
           ),
-          /*new Center(
-            child: */ /*new Image.asset(
-              "images/umbrella.png",
-              fit: BoxFit.cover,
-              height: double.infinity,
-              width: double.infinity,
-            ),*/ /*
-          ),*/
-
           new Column(
             children: <Widget>[
               new Container(
                   alignment: Alignment.topCenter,
                   padding: new EdgeInsets.all(16),
-                  margin: new EdgeInsets.fromLTRB(0, 150, 0, 0),
+                  margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
                   child: new PlaceText(
                       '${_cityName == null ? util.defaultCity : _cityName}')),
               new Container(
-                /*alignment: Alignment.center,
-            child: new Image.asset("images/light_rain.png"),*/
                 child: new Text(
-                  "Updated: $date",
+                  "Updated: ${new DateFormat.jm().format(now)}",
                   style: new TextStyle(fontSize: 20, color: Colors.white),
                 ),
               ),
@@ -98,8 +87,8 @@ Future<Map> getWeather(String appId, String City) async {
       'http://api.openweathermap.org/data/2.5/weather?q=$City&APPID='
       '${util.appID}&units=metric';
   http.Response response = await http.get(apiUrl);
-
-  return jsonDecode(response.body);
+  var data = jsonDecode(response.body);
+  return data;
 }
 
 class TakeLocation extends StatelessWidget {
@@ -110,6 +99,7 @@ class TakeLocation extends StatelessWidget {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Change City"),
+        backgroundColor: Colors.green.shade400,
       ),
       body: new Stack(
         children: <Widget>[
@@ -155,40 +145,114 @@ Widget updateWidget(String city) {
         // ignore: missing_return
         if (snapshot.hasData) {
           responceData = snapshot.data;
-          print(responceData["timezone"].toString());
           temperature = responceData['main']['temp'].toString();
+          _weatherDescriptions = responceData['weather'][0]['description'];
+          var _images;
+          switch (_weatherDescriptions) {
+            case "haze":
+              _images = 'images/haze.png';
+              break;
+            case "broken clouds":
+              _images = 'images/cloudy.png';
+              break;
+            case "clear sky":
+              _images = 'images/beach.png';
+              break;
+            case "scattered clouds":
+              _images = 'images/storm.png';
+              break;
+            case "few clouds":
+              _images = 'images/cloudy.png';
+              break;
+            case "moderate rain":
+              _images = 'images/rain.png';
+              break;
+            default:
+              _images = 'images/beach.png';
+          }
           return new Container(
-            margin: const EdgeInsets.fromLTRB(30, 250, 0, 0),
-            child: new Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              // ignore: missing_return
-              children: <Widget>[
-                new ListTile(
-                  title: new Text(
-                    // ignore: missing_return
-                    "$temperature C",
-                    style: new TextStyle(
-                        fontSize: 39.0,
-                        color: Colors.orange,
-                        fontStyle: FontStyle.normal,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: new ListTile(
-                    title: new Text(
-                      "Humidity: ${responceData['main']['humidity']
-                          .toString()} \n"
-                          "Minimum: ${responceData['main']['temp_min']
-                          .toString()} C \n"
-                          "Maximum: ${responceData['main']['temp_max']
-                          .toString()} C \n"
-                          "Description: ${responceData['weather'][0]['description']}\n",
-                      style: new TextStyle(fontSize: 22.0, color: Colors.white),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          );
+              margin: const EdgeInsets.fromLTRB(30, 250, 0, 0),
+              child: new Container(
+                child: new Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    new Center(
+                        child: new Column(
+                          children: <Widget>[
+                            new Image.asset(
+                              "$_images",
+                              height: 100.0,
+                              width: 100.0,
+                            ),
+                            new Container(
+                              margin: new EdgeInsets.only(top: 16),
+                              child: new Text(
+                                "$temperature °C",
+                                style: new TextStyle(
+                                    fontSize: 64.0,
+                                    color: Colors.white,
+                                    fontStyle: FontStyle.normal,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Roboto'),
+                              ),
+                            ),
+                            new Container(
+                              alignment: Alignment.center,
+                              child: new Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  new Container(
+                                    child: new Row(
+                                      mainAxisAlignment: MainAxisAlignment
+                                          .center,
+                                      children: <Widget>[
+                                        new Icon(Icons.arrow_downward,
+                                            color: Colors.redAccent, size: 24),
+                                        new Text(
+                                          "${responceData['main']['temp_min']
+                                              .toString()} °C",
+                                          style: new TextStyle(
+                                              fontSize: 24.0,
+                                              color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  new Container(
+                                    child: new Row(
+                                      mainAxisAlignment: MainAxisAlignment
+                                          .center,
+                                      children: <Widget>[
+                                        new Icon(
+                                          Icons.arrow_upward,
+                                          color: Colors.yellowAccent,
+                                          size: 24,
+                                        ),
+                                        new Text(
+                                          "${responceData['main']['temp_max']
+                                              .toString()} °C",
+                                          style: new TextStyle(
+                                              fontSize: 24.0,
+                                              color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            new Container(
+                              child: new Text(
+                                "$_weatherDescriptions",
+                                style: new TextStyle(
+                                    fontSize: 34.0, color: Colors.white70),
+                              ),
+                            )
+                          ],
+                        )),
+                  ],
+                ),
+              ));
         } else {
           return new CircularProgressIndicator();
         }
