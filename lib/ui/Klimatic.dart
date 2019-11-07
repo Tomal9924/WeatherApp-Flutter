@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -23,6 +22,7 @@ var timeResponceddata;
 var temperature;
 var now = new DateTime.now();
 var _weatherDescriptions = responceData['weather'][0]['description'];
+var _images;
 
 class KlimateState extends State<Klimatic> {
   String _cityName;
@@ -43,21 +43,38 @@ class KlimateState extends State<Klimatic> {
     // TODO: implement build
 
     return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("Weather App"),
-        backgroundColor: Colors.green.shade600,
-        actions: <Widget>[
-          new IconButton(
-              icon: new Icon(Icons.menu),
-              onPressed: () {
-                goToTakeDirectionScreen(context);
-              })
-        ],
-      ),
+      backgroundColor: Colors.green.shade400,
       body: new Stack(
         children: <Widget>[
+          Align(
+            alignment: Alignment.topRight,
+          ),
           new Container(
+            margin: new EdgeInsets.fromLTRB(20, 48, 0, 0),
+            padding: new EdgeInsets.all(5),
             decoration: new BoxDecoration(color: Colors.green.shade400),
+            child: new Row(
+              children: <Widget>[
+                new Container(
+                  child: new Text(
+                    "Quick Weather",
+                    style: new TextStyle(fontSize: 24.0, color: Colors.white),
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.fromLTRB(120, 0, 0, 0),
+                  child: new IconButton(
+                      alignment: Alignment.centerRight,
+                      icon: new Icon(
+                        Icons.search,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        goToTakeDirectionScreen(context);
+                      }),
+                ),
+              ],
+            ),
           ),
           new Column(
             children: <Widget>[
@@ -65,13 +82,54 @@ class KlimateState extends State<Klimatic> {
                   alignment: Alignment.topCenter,
                   padding: new EdgeInsets.all(16),
                   margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
-                  child: new PlaceText(
-                      '${_cityName == null ? util.defaultCity : _cityName}')),
+                /*child: new PlaceText(
+                      '${_cityName == null ? util.defaultCity : _cityName}')*/
+                child: new Container(
+                    child: new Row(
+                      children: <Widget>[
+                        new Container(
+                          padding: new EdgeInsets.fromLTRB(10, 0, 30, 0),
+                          child: new Image.asset(
+                            "$_images",
+                            height: 50.0,
+                            width: 50.0,
+                          ),
+                        ),
+
+                        new Container(
+                          child: new Text(
+                            "$temperature",
+                            style: new TextStyle(
+                                fontSize: 60.0,
+                                color: Colors.white,
+                                fontStyle: FontStyle.normal,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto'),
+                          ),
+                        ),
+                        new Container(
+                          margin: new EdgeInsets.fromLTRB(6, 0, 0, 0),
+                          alignment: Alignment.topRight,
+                          child: new Text("°C",
+                            style: new TextStyle(
+                                fontSize: 22.0,
+                                color: Colors.white,
+                                fontStyle: FontStyle.normal,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto'),
+                          ),
+                        )
+                      ],
+                    )
+                ),
+              ),
               new Container(
-                child: new Text(
+                  child: new PlaceText(
+                      '${_cityName == null ? util.defaultCity : _cityName}')
+                /*new Text(
                   "Updated: ${new DateFormat.jm().format(now)}",
                   style: new TextStyle(fontSize: 20, color: Colors.white),
-                ),
+                ),*/
               ),
             ],
           ),
@@ -147,7 +205,7 @@ Widget updateWidget(String city) {
           responceData = snapshot.data;
           temperature = responceData['main']['temp'].toString();
           _weatherDescriptions = responceData['weather'][0]['description'];
-          var _images;
+
           switch (_weatherDescriptions) {
             case "haze":
               _images = 'images/haze.png';
@@ -179,23 +237,18 @@ Widget updateWidget(String city) {
                     new Center(
                         child: new Column(
                           children: <Widget>[
-                            new Image.asset(
-                              "$_images",
-                              height: 100.0,
-                              width: 100.0,
-                            ),
-                            new Container(
-                              margin: new EdgeInsets.only(top: 16),
-                              child: new Text(
-                                "$temperature °C",
-                                style: new TextStyle(
-                                    fontSize: 64.0,
-                                    color: Colors.white,
-                                    fontStyle: FontStyle.normal,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Roboto'),
-                              ),
-                            ),
+                            /*new Container(
+                          margin: new EdgeInsets.only(top: 16),
+                          child: new Text(
+                            "$temperature °C",
+                            style: new TextStyle(
+                                fontSize: 64.0,
+                                color: Colors.white,
+                                fontStyle: FontStyle.normal,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto'),
+                          ),
+                        ),*/
                             new Container(
                               alignment: Alignment.center,
                               child: new Column(
@@ -254,7 +307,11 @@ Widget updateWidget(String city) {
                 ),
               ));
         } else {
-          return new CircularProgressIndicator();
+          return new Center(
+            child: new CircularProgressIndicator(
+              valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          );
         }
       });
 }

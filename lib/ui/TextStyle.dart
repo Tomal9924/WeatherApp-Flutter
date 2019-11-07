@@ -9,10 +9,9 @@ class PlaceText extends StatelessWidget{
 
   Widget build(BuildContext context) {
     return new Text(text,
-      style: new prefix0.TextStyle(fontSize: 40,
+      style: new prefix0.TextStyle(fontSize: 20,
         color: Colors.white,
-          fontStyle: FontStyle.normal,
-          fontWeight: FontWeight.bold),);
+          fontStyle: FontStyle.normal),);
   }
 
 }
