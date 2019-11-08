@@ -383,6 +383,7 @@ Widget updateWidget(String city) {
                                     fontSize: 34.0, color: Colors.white70),
                               ),
                             ),
+
                             new Container(
                               child: new Row(
                                 children: <Widget>[
