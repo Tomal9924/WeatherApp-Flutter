@@ -79,28 +79,25 @@ class KlimateState extends State<Klimatic> {
           new Column(
             children: <Widget>[
               new Container(
-                  alignment: Alignment.topCenter,
-                  padding: new EdgeInsets.all(16),
-                  margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
-                /*child: new PlaceText(
-                      '${_cityName == null ? util.defaultCity : _cityName}')*/
+                alignment: Alignment.topCenter,
+                padding: new EdgeInsets.fromLTRB(20, 10, 0, 0),
+                margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
                 child: new Container(
                     child: new Row(
                       children: <Widget>[
                         new Container(
-                          padding: new EdgeInsets.fromLTRB(10, 0, 30, 0),
+                          padding: new EdgeInsets.fromLTRB(10, 0, 30, 16),
                           child: new Image.asset(
                             "$_images",
-                            height: 50.0,
-                            width: 50.0,
+                            height: 40.0,
+                            width: 40.0,
                           ),
                         ),
-
                         new Container(
                           child: new Text(
                             "$temperature",
                             style: new TextStyle(
-                                fontSize: 60.0,
+                                fontSize: 75.0,
                                 color: Colors.white,
                                 fontStyle: FontStyle.normal,
                                 fontWeight: FontWeight.bold,
@@ -108,9 +105,10 @@ class KlimateState extends State<Klimatic> {
                           ),
                         ),
                         new Container(
-                          margin: new EdgeInsets.fromLTRB(6, 0, 0, 0),
+                          margin: new EdgeInsets.fromLTRB(6, 0, 0, 19),
                           alignment: Alignment.topRight,
-                          child: new Text("°C",
+                          child: new Text(
+                            "°C",
                             style: new TextStyle(
                                 fontSize: 22.0,
                                 color: Colors.white,
@@ -120,10 +118,10 @@ class KlimateState extends State<Klimatic> {
                           ),
                         )
                       ],
-                    )
-                ),
+                    )),
               ),
               new Container(
+                  padding: new EdgeInsets.fromLTRB(0, 0, 30, 0),
                   child: new PlaceText(
                       '${_cityName == null ? util.defaultCity : _cityName}')
                 /*new Text(
@@ -203,7 +201,8 @@ Widget updateWidget(String city) {
         // ignore: missing_return
         if (snapshot.hasData) {
           responceData = snapshot.data;
-          temperature = responceData['main']['temp'].toString();
+          temperature = responceData['main']['temp'];
+          print(temperature);
           _weatherDescriptions = responceData['weather'][0]['description'];
 
           switch (_weatherDescriptions) {
