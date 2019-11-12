@@ -3,9 +3,12 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
+import 'DateSelector.dart';
 import 'TextStyle.dart';
 
 class Klimatic extends StatefulWidget {
@@ -21,6 +24,9 @@ Map responceData;
 var _windSpeed;
 var temperature;
 var now = new DateTime.now();
+List<String> _dates = ["5", "10", "-5"];
+List<String> _times = ["7.00", "10.00", "12.00"];
+List<String> _waetherImages = ["Windy", "Rainy", "Hot"];
 //var _weatherDescriptions = responceData['weather'][0]['main'];
 var _weatherDescriptions;
 
@@ -42,6 +48,17 @@ class KlimateState extends State<Klimatic> {
   Widget build(BuildContext context) {
     // TODO: implement build
 
+    ScreenUtil.instance = ScreenUtil(
+      width: 1125,
+      height: 2436,
+      allowFontScaling: true,
+    )
+      ..init(context);
+    var format = new DateFormat.yMMMd("en_US").add_jms();
+    var date = format.format(new DateTime.fromMillisecondsSinceEpoch(
+        1573560000 * 1000 + 86400000,
+        isUtc: true));
+    print("My Date :=> $date");
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
       body: new Stack(
@@ -106,9 +123,10 @@ class KlimateState extends State<Klimatic> {
   }
 }
 
+//http://api.openweathermap.org/data/2.5/forecast?q=Dhaka&appid=ca52c3b0ac2ea9cc5dc426b926349eed&units=metric
 Future<Map> getWeather(String appId, String City) async {
   String apiUrl =
-      'http://api.openweathermap.org/data/2.5/weather?q=$City&APPID='
+      'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID='
       '${util.appID}&units=metric';
   http.Response response = await http.get(apiUrl);
   var data = jsonDecode(response.body);
@@ -169,10 +187,11 @@ Widget updateWidget(String city) {
         // ignore: missing_return
         if (snapshot.hasData) {
           responceData = snapshot.data;
-          temperature = responceData['main']['temp'].toString();
-          _weatherDescriptions = responceData['weather'][0]['main'];
-          _windSpeed = responceData['wind']['speed'];
+          temperature = responceData['list'][0]['main']['temp'].toString();
+          _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
+          _windSpeed = responceData['list'][0]['wind']['speed'];
           print(_windSpeed);
+
           var _images;
           switch (_weatherDescriptions) {
             case "haze":
@@ -202,9 +221,13 @@ Widget updateWidget(String city) {
             case "smoke":
               _images = 'images/smoky.png';
               break;
+            case "Clouds":
+              _images = 'images/cloudy.png';
+              break;
             default:
               _images = 'images/beach.png';
           }
+
           return new Container(
               margin: const EdgeInsets.fromLTRB(30, 150, 0, 0),
               child: new Container(
@@ -250,7 +273,8 @@ Widget updateWidget(String city) {
                             //---------------------------------TODO: Humidity,Min,Max,WindSpeed-----------------------------------
                             new Container(
                               child: new Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceAround,
                                 children: <Widget>[
                                   new Column(
                                     crossAxisAlignment: CrossAxisAlignment
@@ -263,12 +287,12 @@ Widget updateWidget(String city) {
                                             new Text(
                                               "Min: ",
                                               style: new TextStyle(
-                                                  color: Colors.white,
+                                                  color: Colors.white30,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 18),
                                             ),
                                             new Text(
-                                              "${responceData['main']['temp_min']
+                                              "${responceData['list'][0]['main']['temp_min']
                                                   .toString()}",
                                               style: new TextStyle(
                                                   fontSize: 18.0,
@@ -286,21 +310,20 @@ Widget updateWidget(String city) {
                                           new Text(
                                             "Humaidity: ",
                                             style: new TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.white30,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18),
                                           ),
                                           new Text(
-                                            "${responceData['main']['humidity']
-                                                .toString()}",
+                                            "${responceData['list'][0]['main']['humidity']}",
                                             style: new TextStyle(
                                                 fontSize: 18.0,
                                                 color: Colors.white),
                                           ),
                                           new Text(
-                                            "°",
+                                            "%",
                                             style: new TextStyle(
-                                                fontSize: 22.0,
+                                                fontSize: 14.0,
                                                 color: Colors.white),
                                           ),
                                         ],
@@ -309,7 +332,9 @@ Widget updateWidget(String city) {
                                   ),
 
                                   // TODO: 2nd Column--------------------
-
+                                  new Divider(
+                                    color: Colors.black,
+                                  ),
                                   new Column(
                                     crossAxisAlignment: CrossAxisAlignment
                                         .start,
@@ -324,13 +349,12 @@ Widget updateWidget(String city) {
                                           new Text(
                                             "Max: ",
                                             style: new TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.white30,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18),
                                           ),
                                           new Text(
-                                            "${responceData['main']['temp_max']
-                                                .toString()}",
+                                            "${responceData['list'][0]['main']['temp_max']}",
                                             style: new TextStyle(
                                                 fontSize: 18.0,
                                                 color: Colors.white),
@@ -345,13 +369,13 @@ Widget updateWidget(String city) {
                                   ),
                                   new Container(
                                     margin:
-                                    const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                                    const EdgeInsets.fromLTRB(20, 0, 20, 0),
                                     child: new Row(
                                       children: <Widget>[
                                         new Text(
                                           "Wind: ",
                                           style: new TextStyle(
-                                              color: Colors.white,
+                                              color: Colors.white30,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18),
                                         ),
@@ -362,9 +386,9 @@ Widget updateWidget(String city) {
                                               color: Colors.white),
                                         ),
                                         new Text(
-                                          "°",
+                                          "m/s",
                                           style: new TextStyle(
-                                              fontSize: 22.0,
+                                              fontSize: 14.0,
                                               color: Colors.white),
                                         ),
                                       ],
@@ -384,52 +408,93 @@ Widget updateWidget(String city) {
                               ),
                             ),
 
+                            new SingleChildScrollView(
+                                child: new Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    new Row(
+                                      mainAxisAlignment: MainAxisAlignment
+                                          .spaceAround,
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start,
+                                      children: <Widget>[
+                                        DateSelector(
+                                            dates: [
+                                              "Today",
+                                              "Tomorrow",
+                                              "After"
+                                            ]),
+                                        SizedBox(
+                                          height: ScreenUtil().setHeight(50),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                )),
                             new Container(
-                              child: new Row(
-                                children: <Widget>[
-                                  new Column(
-                                    children: <Widget>[
-                                      new Text("Today",
-                                          style: new TextStyle(
-                                              color: Colors.white, fontSize: 20)
-                                      ),
-                                      new Text("5°",
-                                          style: new TextStyle(
-                                              color: Colors.white, fontSize: 20)
-                                      )
-                                    ],
-                                  ),
-                                  new Stack(
-                                    alignment: Alignment.center,
-                                    children: <Widget>[
-                                      new Column(
-                                        children: <Widget>[
-                                          new Text("Tomorrow",
-                                              style: new TextStyle(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 24.0),
+                              height: 250.0,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _dates.length,
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                      width: 100.0,
+                                      child: Card(
+                                        color: Colors.white70,
+                                        child: Container(
+                                          child: Center(
+                                              child: new Container(
+                                                child: new Column(
+                                                  mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                                  children: <Widget>[
+                                                    new ListTile(
+                                                      title: new Text(
+                                                        _times[index]
+                                                            .toString(),
+                                                        textAlign: TextAlign
+                                                            .center,
+                                                        style: new TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 20)
-                                          )
-                                        ],
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    new ListTile(
+                                                      title: new Text(
+                                                        _dates[index]
+                                                            .toString(),
+                                                        textAlign: TextAlign
+                                                            .center,
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 22.0),
+                                                      ),
+                                                    ),
+                                                    new ListTile(
+                                                        title: new Text(
+                                                          _waetherImages[index]
+                                                              .toString(),
+                                                          textAlign: TextAlign
+                                                              .center,
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white,
+                                                              fontSize: 16.0),
+                                                        )
+                                                    ),
+
+
+                                                  ],
+                                                ),
+                                              )),
+                                        ),
                                       ),
-                                    ],
-
-                                  ),
-
-                                  new Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
-                                    children: <Widget>[
-                                      new Text("After",
-                                          style: new TextStyle(
-                                              color: Colors.white, fontSize: 20)
-                                      )
-                                    ],
-                                  )
-
-                                ],
-                              ),
-
-                            )
+                                    );
+                                  }),
+                            ),
                           ],
                         )),
                   ],
