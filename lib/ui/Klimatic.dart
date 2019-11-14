@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
-import 'DateSelector.dart';
 import 'TextStyle.dart';
 
 class Klimatic extends StatefulWidget {
@@ -23,12 +22,16 @@ String convertedCelcious = "";
 Map responceData;
 var _windSpeed;
 var temperature;
+var _index = responceData.length;
 var now = new DateTime.now();
-List<String> _dates = ["5", "10", "-5"];
+List<String> _temp = ["5", "10", "-5"];
 List<String> _times = ["7.00", "10.00", "12.00"];
+//List<String> _times =responceData['list'][_index]['main']['temp'];
 List<String> _waetherImages = ["Windy", "Rainy", "Hot"];
-//var _weatherDescriptions = responceData['weather'][0]['main'];
 var _weatherDescriptions;
+bool buttonState = true;
+String _unitText = "metric";
+
 
 class KlimateState extends State<Klimatic> {
   String _cityName;
@@ -54,11 +57,15 @@ class KlimateState extends State<Klimatic> {
       allowFontScaling: true,
     )
       ..init(context);
+
+
     var format = new DateFormat.yMMMd("en_US").add_jms();
     var date = format.format(new DateTime.fromMillisecondsSinceEpoch(
         1573560000 * 1000 + 86400000,
         isUtc: true));
     print("My Date :=> $date");
+
+
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
       body: new Stack(
@@ -122,22 +129,59 @@ class KlimateState extends State<Klimatic> {
     );
   }
 }
-
 //http://api.openweathermap.org/data/2.5/forecast?q=Dhaka&appid=ca52c3b0ac2ea9cc5dc426b926349eed&units=metric
-Future<Map> getWeather(String appId, String City) async {
+Future<Map> getWeather(String appId, String City, String unit) async {
   String apiUrl =
       'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID='
-      '${util.appID}&units=metric';
+      '${util.appID}&units=$_unitText';
   http.Response response = await http.get(apiUrl);
-  var data = jsonDecode(response.body);
-  return data;
+  if (response.statusCode == 200) {
+    var data = jsonDecode(response.body);
+    return data;
+  } else {
+    new Center(
+        child: new Text(
+          "Data Not Found",
+          style: new TextStyle(color: Colors.white, fontSize: 35.0),
+        ));
+  }
 }
 
-class TakeLocation extends StatelessWidget {
-  var _getLocationController = new TextEditingController();
+class TakeLocation extends StatefulWidget {
 
   @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return new InfoScreen();
+  }
+}
+
+class InfoScreen extends State<TakeLocation> {
+  var _getLocationController = new TextEditingController();
+  int radiovalue = null;
+
+  void handleRadioValueChanged(int value) {
+    setState(() {
+      radiovalue = value;
+      switch (radiovalue) {
+        case 0:
+          print(value);
+          break;
+        case 1:
+          print(value);
+          break;
+        case 2:
+          _unitText = "metric";
+          break;
+        case 3:
+          _unitText = "imperial";
+          break;
+      }
+    });
+  }
+  @override
   Widget build(BuildContext context) {
+    // TODO: implement build
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Change City"),
@@ -156,11 +200,17 @@ class TakeLocation extends StatelessWidget {
           new ListView(
             children: <Widget>[
               new ListTile(
-                title: new TextField(
-                  decoration: new InputDecoration(hintText: "Enter City"),
-                  keyboardType: TextInputType.text,
-                  controller: _getLocationController,
-                ),
+                  title: Container(
+                    child: new TextField(
+                      style: new TextStyle(
+                          fontSize: 24,
+                          height: 2
+                      ),
+                      decoration: new InputDecoration(hintText: "Enter City"),
+                      keyboardType: TextInputType.text,
+                      controller: _getLocationController,
+                    ),
+                  )
               ),
               new ListTile(
                   title: new FlatButton(
@@ -170,7 +220,104 @@ class TakeLocation extends StatelessWidget {
                         Navigator.pop(
                             context, {'location': _getLocationController.text});
                       },
-                      child: new Text("Get Weather")))
+                      child: new Text("Get Weather"))),
+              new ListTile(
+                title: new Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    "Theme",
+                    style: new TextStyle(fontSize: 18,
+                      fontWeight: FontWeight.bold,),
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      "Dark",
+                      style: TextStyle(
+                          color: Colors.black87),
+                    ),
+                    new Radio<int>(
+                        activeColor: Colors.brown,
+                        value: 0,
+                        groupValue: radiovalue,
+                        onChanged: handleRadioValueChanged),
+                  ],
+                ),
+                subtitle: Divider(
+                  color: Colors.grey,
+                  height: 1,
+                ),
+              ),
+              ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      "Light",
+                      style: TextStyle(
+                          color: Colors.black87),
+                    ),
+                    new Radio<int>(
+                        activeColor: Colors.brown,
+                        value: 1,
+                        groupValue: radiovalue,
+                        onChanged: handleRadioValueChanged),
+                  ],
+                ),
+              ),
+              new ListTile(
+                title: new Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    "Units",
+                    style: new TextStyle(fontSize: 18,
+                      fontWeight: FontWeight.bold,),
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      "Celcious",
+                      style: TextStyle(
+                          color: Colors.black87),
+                    ),
+                    new Radio<int>(
+                        activeColor: Colors.brown,
+                        value: 2,
+                        groupValue: radiovalue,
+                        onChanged: handleRadioValueChanged),
+                  ],
+                ),
+                subtitle: Divider(
+                  color: Colors.grey,
+                  height: 1,
+                ),
+              ),
+              ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      "Farenheight",
+                      style: TextStyle(
+                          color: Colors.black87),
+                    ),
+                    new Radio<int>(
+                        activeColor: Colors.brown,
+                        value: 3,
+                        groupValue: radiovalue,
+                        onChanged: handleRadioValueChanged),
+                  ],
+                ),
+
+              )
             ],
           )
         ],
@@ -178,19 +325,18 @@ class TakeLocation extends StatelessWidget {
     );
   }
 }
-
 Widget updateWidget(String city) {
   return new FutureBuilder(
-      future: getWeather(util.appID, city == null ? util.defaultCity : city),
-      // ignore: missing_return
+      future: getWeather(
+          util.appID, city == null ? util.defaultCity : city, util.units),
       builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
-        // ignore: missing_return
         if (snapshot.hasData) {
           responceData = snapshot.data;
+          //Todo: Getting All the json Data from responceData.
+          // print(responceData);
           temperature = responceData['list'][0]['main']['temp'].toString();
           _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
           _windSpeed = responceData['list'][0]['wind']['speed'];
-          print(_windSpeed);
 
           var _images;
           switch (_weatherDescriptions) {
@@ -227,6 +373,7 @@ Widget updateWidget(String city) {
             default:
               _images = 'images/beach.png';
           }
+          var _dates = ["Today", "Tomorrow", "After"];
 
           return new Container(
               margin: const EdgeInsets.fromLTRB(30, 150, 0, 0),
@@ -408,98 +555,123 @@ Widget updateWidget(String city) {
                               ),
                             ),
 
-                            new SingleChildScrollView(
-                                child: new Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    new Row(
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .spaceAround,
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: <Widget>[
-                                        DateSelector(
-                                            dates: [
-                                              "Today",
-                                              "Tomorrow",
-                                              "After"
-                                            ]),
-                                        SizedBox(
-                                          height: ScreenUtil().setHeight(50),
+                            //Todo:----------------------Today Tomorrow After ---------------------
+                            new Column(
+                              children: <Widget>[
+                                new Container(
+                                  margin: const EdgeInsets.only(top: 24),
+                                  child: new Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: <Widget>[
+                                      new InkWell(
+                                        child: new Text(
+                                          "Today",
+                                          style: new TextStyle(
+                                              color: Colors.white),
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                )),
+                                        onTap: () {
+                                          print("Today");
+                                        },
+                                      ),
+                                      new InkWell(
+                                        child: new Text(
+                                          "Tomorrow",
+                                          style: new TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        onTap: () {
+                                          print("Tomorrow");
+                                        },
+                                      ),
+                                      new InkWell(
+                                        child: new Text(
+                                          "After",
+                                          style: new TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        onTap: () {
+                                          print("After");
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //Todo:----------------List----------------------
                             new Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 10.0, vertical: 24.0),
-                              height: 250.0,
-                              child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _dates.length,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      width: 100.0,
-                                      child: Card(
-                                        color: Colors.white70,
-                                        child: Container(
-                                          child: Center(
-                                              child: new Container(
-                                                child: new Column(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.spaceAround,
-                                                  children: <Widget>[
-                                                    new ListTile(
-                                                      title: new Text(
-                                                        _times[index]
-                                                            .toString(),
-                                                        textAlign: TextAlign
-                                                            .center,
-                                                        style: new TextStyle(
-                                                  color: Colors.white,
-                                                          fontSize: 16,
+                                margin: const EdgeInsets.only(top: 16),
+                                height: 200.0,
+                                child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: responceData.length,
+                                    itemBuilder: (context, index) {
+                                      return Container(
+                                        width: 100.0,
+                                        child: Card(
+                                          elevation: 7,
+                                          color: Colors.white24,
+                                          child: Container(
+                                            child: Center(
+                                                child: new Container(
+                                                  child: new Column(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceAround,
+                                                    children: <Widget>[
+                                                      new ListTile(
+                                                        title: new Text(
+                                                          _times[index]
+                                                              .toString(),
+                                                          textAlign:
+                                                          TextAlign.center,
+                                                          style: new TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    new ListTile(
-                                                      title: new Text(
-                                                        _dates[index]
-                                                            .toString(),
-                                                        textAlign: TextAlign
-                                                            .center,
-                                                        style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 22.0),
+                                                      new ListTile(
+                                                        title: new Text(
+                                                          _temp[index]
+                                                              .toString(),
+                                                          textAlign:
+                                                          TextAlign.center,
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white,
+                                                              fontSize: 22.0),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    new ListTile(
+                                                      new ListTile(
                                                         title: new Text(
                                                           _waetherImages[index]
                                                               .toString(),
-                                                          textAlign: TextAlign
-                                                              .center,
+                                                          textAlign:
+                                                          TextAlign.center,
                                                           style: TextStyle(
                                                               color: Colors
                                                                   .white,
                                                               fontSize: 16.0),
-                                                        )
-                                                    ),
-
-
-                                                  ],
-                                                ),
-                                              )),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )),
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                      );
+                                    }))
+                              ],
                             ),
                           ],
                         )),
                   ],
                 ),
               ));
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
         } else {
           return new Center(
             child: new CircularProgressIndicator(

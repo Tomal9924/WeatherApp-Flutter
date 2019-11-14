@@ -25,14 +25,18 @@ class _DateSelectorState extends State<DateSelector> {
             setState(() {
               _currentIndex = index;
             });
+            print(index);
           },
-          child: Text(date,
-              style: new TextStyle(
-                  color: _isDetected ? Colors.grey.shade400 : Colors.white,
-                  fontSize: _isDetected ? 22 : 16,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: "Roboto")),
+            child: new GestureDetector(
+              child: new Text(date,
+                  style: new TextStyle(
+                      color: _isDetected ? Colors.grey.shade400 : Colors.white,
+                      fontSize: _isDetected ? 22 : 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: "Roboto")),
+            )
         ),
+
       );
     }).toList();
   }
