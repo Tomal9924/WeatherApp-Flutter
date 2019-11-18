@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:weather_app/ui/row.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -19,30 +18,17 @@ class Klimatic extends StatefulWidget {
   }
 }
 
-
-List<RowForecast> _currentArrayList;
-//2019-11-15 12:00:00
-DateTime now = DateTime.now();
-final today = DateTime(now.year, now.month, now.day);
-final tomorrow = DateTime(now.year, now.month, now.day + 1);
-String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
-String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(tomorrow);
-List<RowForecast> todayArraylist = new List();
-List<RowForecast> tomorrowArrayList = new List();
 String convertedCelcious = "";
 Map responceData;
 var _windSpeed;
 var temperature;
 var _index = responceData.length;
+var now = new DateTime.now();
 var arraylist = responceData['list'];
 var _weatherDescriptions;
 bool buttonState = true;
 String _unitText = "metric";
-
-_updateList() {
-  _currentArrayList = tomorrowArrayList;
-}
-
+var apiResult;
 class KlimateState extends State<Klimatic> {
   String _cityName;
 
@@ -55,12 +41,13 @@ class KlimateState extends State<Klimatic> {
       // print(results['location'].toString());
       _cityName = results['location'];
     }
+
+    apiResult = await getWeather(util.appID, _cityName, _unitText);
   }
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-
     ScreenUtil.instance = ScreenUtil(
       width: 1125,
       height: 2436,
@@ -119,7 +106,8 @@ class KlimateState extends State<Klimatic> {
                   )),
             ],
           ),
-          updateWidget(_cityName)
+          //updateWidget(_cityName)
+
         ],
       ),
     );
@@ -128,10 +116,10 @@ class KlimateState extends State<Klimatic> {
 
 //Todo:-------------------Api Call--------------------------------
 Future<Map> getWeather(String appId, String City, String unit) async {
-  String apiUrl =
-      'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID='
-      '${util.appID}&units=$_unitText';
+  String apiUrl = 'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID=''${util
+      .appID}&units=$_unitText';
   http.Response response = await http.get(apiUrl);
+
   if (response.statusCode == 200) {
     var data = jsonDecode(response.body);
     return data;
@@ -143,6 +131,7 @@ Future<Map> getWeather(String appId, String City, String unit) async {
         ));
   }
 }
+
 
 class TakeLocation extends StatefulWidget {
   @override
@@ -175,6 +164,7 @@ class InfoScreen extends State<TakeLocation> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -323,10 +313,36 @@ Widget updateWidget(String city) {
       future: getWeather(
           util.appID, city == null ? util.defaultCity : city, util.units),
       builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
-
         if (snapshot.hasData) {
           responceData = snapshot.data;
           arraylist = responceData['list'];
+          var currentArraylist;
+          //Todo: Getting All the json Data from responceData-------------------.
+          temperature = responceData['list'][0]['main']['temp'].toString();
+          _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
+          _windSpeed = responceData['list'][0]['wind']['speed'];
+
+          //2019-11-15 12:00:00
+          DateTime now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final tomorrow = DateTime(now.year, now.month, now.day + 1);
+          String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
+          String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(
+              tomorrow);
+
+          var todayArraylist = new List();
+          var tomorrowArrayList = new List();
+          for (var time in arraylist) {
+            if (time['dt_txt'].toString().contains(formattedDateToday)) {
+              todayArraylist.add(time);
+            }
+            else
+            if (time['dt_txt'].toString().contains(formattedDateTomorrow)) {
+              tomorrowArrayList.add(time);
+            }
+          }
+          currentArraylist = todayArraylist;
+
           var _images;
           switch (_weatherDescriptions) {
             case "haze":
@@ -362,24 +378,6 @@ Widget updateWidget(String city) {
             default:
               _images = 'images/beach.png';
           }
-
-          for (var time in arraylist) {
-            RowForecast row = new RowForecast(
-                time['main']['temp'], _images, time['dt_txt']);
-            if (time['dt_txt'].toString().contains(formattedDateToday)) {
-              todayArraylist.add(row);
-            }
-            else
-            if (time['dt_txt'].toString().contains(formattedDateTomorrow)) {
-              tomorrowArrayList.add(row);
-            }
-          }
-          _currentArrayList = todayArraylist;
-
-          //Todo: Getting All the json Data from responceData-------------------.
-          temperature = responceData['list'][0]['main']['temp'].toString();
-          _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
-          _windSpeed = responceData['list'][0]['wind']['speed'];
 
           return new Container(
               margin: const EdgeInsets.fromLTRB(30, 150, 0, 0),
@@ -491,63 +489,63 @@ Widget updateWidget(String city) {
                                   new Column(
                                     crossAxisAlignment: CrossAxisAlignment
                                         .start,
-                                children: <Widget>[
-                                  new Container(
-                                    margin:
-                                    const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                                    child: new Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.start,
-                                        children: <Widget>[
-                                          new Text(
-                                            "Max: ",
-                                            style: new TextStyle(
-                                                color: Colors.white30,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          ),
-                                          new Text(
-                                            "${responceData['list'][0]['main']['temp_max']}",
-                                            style: new TextStyle(
-                                                fontSize: 18.0,
-                                                color: Colors.white),
-                                          ),
-                                          new Text(
-                                            "°",
-                                            style: new TextStyle(
-                                                fontSize: 22.0,
-                                                color: Colors.white),
-                                          ),
-                                        ]),
-                                  ),
-                                  new Container(
-                                    margin:
-                                    const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                                    child: new Row(
-                                      children: <Widget>[
-                                        new Text(
-                                          "Wind: ",
-                                          style: new TextStyle(
-                                              color: Colors.white30,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                    children: <Widget>[
+                                      new Container(
+                                        margin:
+                                        const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                                        child: new Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: <Widget>[
+                                              new Text(
+                                                "Max: ",
+                                                style: new TextStyle(
+                                                    color: Colors.white30,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18),
+                                              ),
+                                              new Text(
+                                                "${responceData['list'][0]['main']['temp_max']}",
+                                                style: new TextStyle(
+                                                    fontSize: 18.0,
+                                                    color: Colors.white),
+                                              ),
+                                              new Text(
+                                                "°",
+                                                style: new TextStyle(
+                                                    fontSize: 22.0,
+                                                    color: Colors.white),
+                                              ),
+                                            ]),
+                                      ),
+                                      new Container(
+                                        margin:
+                                        const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                                        child: new Row(
+                                          children: <Widget>[
+                                            new Text(
+                                              "Wind: ",
+                                              style: new TextStyle(
+                                                  color: Colors.white30,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            ),
+                                            new Text(
+                                              "${_windSpeed.toString()}",
+                                              style: new TextStyle(
+                                                  fontSize: 18.0,
+                                                  color: Colors.white),
+                                            ),
+                                            new Text(
+                                              "m/s",
+                                              style: new TextStyle(
+                                                  fontSize: 14.0,
+                                                  color: Colors.white),
+                                            ),
+                                          ],
                                         ),
-                                        new Text(
-                                          "${_windSpeed.toString()}",
-                                          style: new TextStyle(
-                                              fontSize: 18.0,
-                                              color: Colors.white),
-                                        ),
-                                        new Text(
-                                          "m/s",
-                                          style: new TextStyle(
-                                              fontSize: 14.0,
-                                              color: Colors.white),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ],
+                                      )
+                                    ],
                                   )
                                 ],
                               ),
@@ -580,7 +578,7 @@ Widget updateWidget(String city) {
                                         ),
                                         onTap: () {
                                           print("Today");
-                                          _currentArrayList = todayArraylist;
+                                          currentArraylist = todayArraylist;
                                         },
                                       ),
                                       new InkWell(
@@ -589,17 +587,11 @@ Widget updateWidget(String city) {
                                           style: new TextStyle(
                                               color: Colors.white),
                                         ),
-                                        onTap: _updateList
-                                        /*() {
-
-                                      print("Tomorrow");
-                                      for(int i=0; i< currentArraylist.length; i++) {
-                                        currentArraylist.removeAt(i);
-                                      }
-                                      for(int i=0; i< tomorrowArrayList.length; i++) {
-                                        currentArraylist.add(tomorrowArrayList[i]);
-                                      }
-                                    }*/,
+                                        onTap: () {
+                                          print("Tomorrow");
+                                          currentArraylist = tomorrowArrayList;
+                                          int x = 0;
+                                        },
                                       ),
                                       new InkWell(
                                         child: new Text(
@@ -616,15 +608,15 @@ Widget updateWidget(String city) {
                                 ),
 
                                 //Todo:----------------List----------------------
-                            new Container(
-                                margin: const EdgeInsets.only(top: 16),
-                                height: 200.0,
-                                child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: _currentArrayList.length,
-                                    itemBuilder: (context, index) {
-                                      return _currentArrayList[index];
-                                      /*Container(
+                                new Container(
+                                    margin: const EdgeInsets.only(top: 16),
+                                    height: 200.0,
+                                    child: ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        itemCount: currentArraylist.length,
+                                        itemBuilder: (context, index) {
+                                          return new /*RowForecast(currentArraylist[index]['temp'], _images, currentArraylist[index]['dt_text']);*/
+                                          Container(
                                         width: 100.0,
                                         child: Card(
                                           elevation: 7,
@@ -675,8 +667,8 @@ Widget updateWidget(String city) {
                                             )),
                                           ),
                                         ),
-                                      );*/
-                                    }))
+                                          );
+                                        }))
                               ],
                             ),
                           ],
