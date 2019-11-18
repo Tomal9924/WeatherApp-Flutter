@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:weather_app/ui/row.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -18,20 +19,29 @@ class Klimatic extends StatefulWidget {
   }
 }
 
+
+List<RowForecast> _currentArrayList;
+//2019-11-15 12:00:00
+DateTime now = DateTime.now();
+final today = DateTime(now.year, now.month, now.day);
+final tomorrow = DateTime(now.year, now.month, now.day + 1);
+String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
+String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(tomorrow);
+List<RowForecast> todayArraylist = new List();
+List<RowForecast> tomorrowArrayList = new List();
 String convertedCelcious = "";
 Map responceData;
 var _windSpeed;
 var temperature;
 var _index = responceData.length;
-var now = new DateTime.now();
-List<String> _temp = ["5", "10", "-5"];
-List<String> _times = ["7.00", "10.00", "12.00"];
-//List<String> _times =responceData['list'][_index]['main']['temp'];
-List<String> _waetherImages = ["Windy", "Rainy", "Hot"];
+var arraylist = responceData['list'];
 var _weatherDescriptions;
 bool buttonState = true;
 String _unitText = "metric";
 
+_updateList() {
+  _currentArrayList = tomorrowArrayList;
+}
 
 class KlimateState extends State<Klimatic> {
   String _cityName;
@@ -57,14 +67,6 @@ class KlimateState extends State<Klimatic> {
       allowFontScaling: true,
     )
       ..init(context);
-
-
-    var format = new DateFormat.yMMMd("en_US").add_jms();
-    var date = format.format(new DateTime.fromMillisecondsSinceEpoch(
-        1573560000 * 1000 + 86400000,
-        isUtc: true));
-    print("My Date :=> $date");
-
 
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
@@ -100,12 +102,6 @@ class KlimateState extends State<Klimatic> {
           ),
           new Column(
             children: <Widget>[
-              /*new Container(
-                child: new Text(
-                  "${new DateFormat.jm().format(now)}",
-                  style: new TextStyle(fontSize: 20, color: Colors.white),
-                ),
-              ),*/
               new Container(
                   margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
                   child: new Row(
@@ -129,7 +125,8 @@ class KlimateState extends State<Klimatic> {
     );
   }
 }
-//http://api.openweathermap.org/data/2.5/forecast?q=Dhaka&appid=ca52c3b0ac2ea9cc5dc426b926349eed&units=metric
+
+//Todo:-------------------Api Call--------------------------------
 Future<Map> getWeather(String appId, String City, String unit) async {
   String apiUrl =
       'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID='
@@ -148,7 +145,6 @@ Future<Map> getWeather(String appId, String City, String unit) async {
 }
 
 class TakeLocation extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -202,16 +198,12 @@ class InfoScreen extends State<TakeLocation> {
               new ListTile(
                   title: Container(
                     child: new TextField(
-                      style: new TextStyle(
-                          fontSize: 24,
-                          height: 2
-                      ),
+                      style: new TextStyle(fontSize: 24, height: 2),
                       decoration: new InputDecoration(hintText: "Enter City"),
                       keyboardType: TextInputType.text,
                       controller: _getLocationController,
                     ),
-                  )
-              ),
+                  )),
               new ListTile(
                   title: new FlatButton(
                       color: Colors.lightBlue.shade400,
@@ -226,8 +218,10 @@ class InfoScreen extends State<TakeLocation> {
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
                     "Theme",
-                    style: new TextStyle(fontSize: 18,
-                      fontWeight: FontWeight.bold,),
+                    style: new TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -237,8 +231,7 @@ class InfoScreen extends State<TakeLocation> {
                   children: <Widget>[
                     Text(
                       "Dark",
-                      style: TextStyle(
-                          color: Colors.black87),
+                      style: TextStyle(color: Colors.black87),
                     ),
                     new Radio<int>(
                         activeColor: Colors.brown,
@@ -258,8 +251,7 @@ class InfoScreen extends State<TakeLocation> {
                   children: <Widget>[
                     Text(
                       "Light",
-                      style: TextStyle(
-                          color: Colors.black87),
+                      style: TextStyle(color: Colors.black87),
                     ),
                     new Radio<int>(
                         activeColor: Colors.brown,
@@ -274,8 +266,10 @@ class InfoScreen extends State<TakeLocation> {
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
                     "Units",
-                    style: new TextStyle(fontSize: 18,
-                      fontWeight: FontWeight.bold,),
+                    style: new TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -285,8 +279,7 @@ class InfoScreen extends State<TakeLocation> {
                   children: <Widget>[
                     Text(
                       "Celcious",
-                      style: TextStyle(
-                          color: Colors.black87),
+                      style: TextStyle(color: Colors.black87),
                     ),
                     new Radio<int>(
                         activeColor: Colors.brown,
@@ -306,8 +299,7 @@ class InfoScreen extends State<TakeLocation> {
                   children: <Widget>[
                     Text(
                       "Farenheight",
-                      style: TextStyle(
-                          color: Colors.black87),
+                      style: TextStyle(color: Colors.black87),
                     ),
                     new Radio<int>(
                         activeColor: Colors.brown,
@@ -316,7 +308,6 @@ class InfoScreen extends State<TakeLocation> {
                         onChanged: handleRadioValueChanged),
                   ],
                 ),
-
               )
             ],
           )
@@ -325,19 +316,17 @@ class InfoScreen extends State<TakeLocation> {
     );
   }
 }
+
 Widget updateWidget(String city) {
+  //Todo:-------------------------JSON Calling---------------------------------
   return new FutureBuilder(
       future: getWeather(
           util.appID, city == null ? util.defaultCity : city, util.units),
       builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
+
         if (snapshot.hasData) {
           responceData = snapshot.data;
-          //Todo: Getting All the json Data from responceData.
-          // print(responceData);
-          temperature = responceData['list'][0]['main']['temp'].toString();
-          _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
-          _windSpeed = responceData['list'][0]['wind']['speed'];
-
+          arraylist = responceData['list'];
           var _images;
           switch (_weatherDescriptions) {
             case "haze":
@@ -373,7 +362,24 @@ Widget updateWidget(String city) {
             default:
               _images = 'images/beach.png';
           }
-          var _dates = ["Today", "Tomorrow", "After"];
+
+          for (var time in arraylist) {
+            RowForecast row = new RowForecast(
+                time['main']['temp'], _images, time['dt_txt']);
+            if (time['dt_txt'].toString().contains(formattedDateToday)) {
+              todayArraylist.add(row);
+            }
+            else
+            if (time['dt_txt'].toString().contains(formattedDateTomorrow)) {
+              tomorrowArrayList.add(row);
+            }
+          }
+          _currentArrayList = todayArraylist;
+
+          //Todo: Getting All the json Data from responceData-------------------.
+          temperature = responceData['list'][0]['main']['temp'].toString();
+          _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
+          _windSpeed = responceData['list'][0]['wind']['speed'];
 
           return new Container(
               margin: const EdgeInsets.fromLTRB(30, 150, 0, 0),
@@ -574,6 +580,7 @@ Widget updateWidget(String city) {
                                         ),
                                         onTap: () {
                                           print("Today");
+                                          _currentArrayList = todayArraylist;
                                         },
                                       ),
                                       new InkWell(
@@ -582,9 +589,17 @@ Widget updateWidget(String city) {
                                           style: new TextStyle(
                                               color: Colors.white),
                                         ),
-                                        onTap: () {
-                                          print("Tomorrow");
-                                        },
+                                        onTap: _updateList
+                                        /*() {
+
+                                      print("Tomorrow");
+                                      for(int i=0; i< currentArraylist.length; i++) {
+                                        currentArraylist.removeAt(i);
+                                      }
+                                      for(int i=0; i< tomorrowArrayList.length; i++) {
+                                        currentArraylist.add(tomorrowArrayList[i]);
+                                      }
+                                    }*/,
                                       ),
                                       new InkWell(
                                         child: new Text(
@@ -599,15 +614,17 @@ Widget updateWidget(String city) {
                                     ],
                                   ),
                                 ),
+
                                 //Todo:----------------List----------------------
                             new Container(
                                 margin: const EdgeInsets.only(top: 16),
                                 height: 200.0,
                                 child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: responceData.length,
+                                    itemCount: _currentArrayList.length,
                                     itemBuilder: (context, index) {
-                                      return Container(
+                                      return _currentArrayList[index];
+                                      /*Container(
                                         width: 100.0,
                                         child: Card(
                                           elevation: 7,
@@ -615,53 +632,50 @@ Widget updateWidget(String city) {
                                           child: Container(
                                             child: Center(
                                                 child: new Container(
-                                                  child: new Column(
-                                                    mainAxisAlignment:
+                                              child: new Column(
+                                                mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceAround,
-                                                    children: <Widget>[
-                                                      new ListTile(
-                                                        title: new Text(
-                                                          _times[index]
-                                                              .toString(),
-                                                          textAlign:
+                                                children: <Widget>[
+                                                  new ListTile(
+                                                    title: new Text(
+                                                      currentArraylist[index]['dt_txt']
+                                                          .toString()
+                                                          .substring(11, 16),
+                                                      textAlign:
                                                           TextAlign.center,
-                                                          style: new TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 16,
-                                                          ),
-                                                        ),
+                                                      style: new TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
                                                       ),
-                                                      new ListTile(
-                                                        title: new Text(
-                                                          _temp[index]
-                                                              .toString(),
-                                                          textAlign:
-                                                          TextAlign.center,
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .white,
-                                                              fontSize: 22.0),
-                                                        ),
-                                                      ),
-                                                      new ListTile(
-                                                        title: new Text(
-                                                          _waetherImages[index]
-                                                              .toString(),
-                                                          textAlign:
-                                                          TextAlign.center,
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .white,
-                                                              fontSize: 16.0),
-                                                        ),
-                                                      ),
-                                                    ],
+                                                    ),
                                                   ),
-                                                )),
+                                                  new ListTile(
+                                                    title: new Image.asset(
+                                                      "$_images",
+                                                      height: 50.0,
+                                                      width: 50.0,
+                                                    ),
+                                                  ),
+                                                  new ListTile(
+                                                    title: new Text(
+                                                      currentArraylist[index]['main']
+                                                                  ['temp']
+                                                              .toString() +
+                                                          "°",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 20.0),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )),
                                           ),
                                         ),
-                                      );
+                                      );*/
                                     }))
                               ],
                             ),
