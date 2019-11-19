@@ -22,13 +22,23 @@ String convertedCelcious = "";
 Map responceData;
 var _windSpeed;
 var temperature;
-var _index = responceData.length;
-var now = new DateTime.now();
 var arraylist = responceData['list'];
 var _weatherDescriptions;
 bool buttonState = true;
 String _unitText = "metric";
 var apiResult;
+Widget listWidget;
+var _images;
+var _ListImages;
+var todayArraylist = new List();
+var tomorrowArrayList = new List();
+
+DateTime now = DateTime.now();
+final today = DateTime(now.year, now.month, now.day);
+final tomorrow = DateTime(now.year, now.month, now.day + 1);
+String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
+String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(tomorrow);
+
 class KlimateState extends State<Klimatic> {
   String _cityName;
 
@@ -41,12 +51,11 @@ class KlimateState extends State<Klimatic> {
       // print(results['location'].toString());
       _cityName = results['location'];
     }
-
-    apiResult = await getWeather(util.appID, _cityName, _unitText);
   }
 
   @override
   Widget build(BuildContext context) {
+    listWidget = updateWidget(_cityName);
     // TODO: implement build
     ScreenUtil.instance = ScreenUtil(
       width: 1125,
@@ -54,6 +63,9 @@ class KlimateState extends State<Klimatic> {
       allowFontScaling: true,
     )
       ..init(context);
+    void _updateData() {
+      setState(() {});
+    }
 
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
@@ -106,8 +118,7 @@ class KlimateState extends State<Klimatic> {
                   )),
             ],
           ),
-          //updateWidget(_cityName)
-
+          listWidget
         ],
       ),
     );
@@ -116,8 +127,9 @@ class KlimateState extends State<Klimatic> {
 
 //Todo:-------------------Api Call--------------------------------
 Future<Map> getWeather(String appId, String City, String unit) async {
-  String apiUrl = 'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID=''${util
-      .appID}&units=$_unitText';
+  String apiUrl =
+      'http://api.openweathermap.org/data/2.5/forecast?q=$City&APPID='
+      '${util.appID}&units=$_unitText';
   http.Response response = await http.get(apiUrl);
 
   if (response.statusCode == 200) {
@@ -131,7 +143,6 @@ Future<Map> getWeather(String appId, String City, String unit) async {
         ));
   }
 }
-
 
 class TakeLocation extends StatefulWidget {
   @override
@@ -309,6 +320,7 @@ class InfoScreen extends State<TakeLocation> {
 
 Widget updateWidget(String city) {
   //Todo:-------------------------JSON Calling---------------------------------
+
   return new FutureBuilder(
       future: getWeather(
           util.appID, city == null ? util.defaultCity : city, util.units),
@@ -323,27 +335,19 @@ Widget updateWidget(String city) {
           _windSpeed = responceData['list'][0]['wind']['speed'];
 
           //2019-11-15 12:00:00
-          DateTime now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-          final tomorrow = DateTime(now.year, now.month, now.day + 1);
-          String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
-          String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(
-              tomorrow);
 
-          var todayArraylist = new List();
-          var tomorrowArrayList = new List();
           for (var time in arraylist) {
             if (time['dt_txt'].toString().contains(formattedDateToday)) {
               todayArraylist.add(time);
-            }
-            else
-            if (time['dt_txt'].toString().contains(formattedDateTomorrow)) {
+            } else if (time['dt_txt']
+                .toString()
+                .contains(formattedDateTomorrow)) {
               tomorrowArrayList.add(time);
             }
           }
-          currentArraylist = todayArraylist;
+          currentArraylist = arraylist;
 
-          var _images;
+
           switch (_weatherDescriptions) {
             case "haze":
               _images = 'images/haze.png';
@@ -374,6 +378,12 @@ Widget updateWidget(String city) {
               break;
             case "Clouds":
               _images = 'images/cloudy.png';
+              break;
+            case "Clear":
+              _images = 'images/sunny.png';
+              break;
+            case "Rain":
+              _images = 'images/rainy.png';
               break;
             default:
               _images = 'images/beach.png';
@@ -566,43 +576,17 @@ Widget updateWidget(String city) {
                                   margin: const EdgeInsets.only(top: 24),
                                   child: new Row(
                                     mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                    MainAxisAlignment.spaceAround,
                                     crossAxisAlignment: CrossAxisAlignment
                                         .start,
                                     children: <Widget>[
                                       new InkWell(
                                         child: new Text(
-                                          "Today",
+                                          "Forecasts",
                                           style: new TextStyle(
                                               color: Colors.white),
                                         ),
-                                        onTap: () {
-                                          print("Today");
-                                          currentArraylist = todayArraylist;
-                                        },
-                                      ),
-                                      new InkWell(
-                                        child: new Text(
-                                          "Tomorrow",
-                                          style: new TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                        onTap: () {
-                                          print("Tomorrow");
-                                          currentArraylist = tomorrowArrayList;
-                                          int x = 0;
-                                        },
-                                      ),
-                                      new InkWell(
-                                        child: new Text(
-                                          "After",
-                                          style: new TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                        onTap: () {
-                                          print("After");
-                                        },
-                                      ),
+                                      )
                                     ],
                                   ),
                                 ),
@@ -611,64 +595,7 @@ Widget updateWidget(String city) {
                                 new Container(
                                     margin: const EdgeInsets.only(top: 16),
                                     height: 200.0,
-                                    child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: currentArraylist.length,
-                                        itemBuilder: (context, index) {
-                                          return new /*RowForecast(currentArraylist[index]['temp'], _images, currentArraylist[index]['dt_text']);*/
-                                          Container(
-                                        width: 100.0,
-                                        child: Card(
-                                          elevation: 7,
-                                          color: Colors.white24,
-                                          child: Container(
-                                            child: Center(
-                                                child: new Container(
-                                              child: new Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceAround,
-                                                children: <Widget>[
-                                                  new ListTile(
-                                                    title: new Text(
-                                                      currentArraylist[index]['dt_txt']
-                                                          .toString()
-                                                          .substring(11, 16),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: new TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  new ListTile(
-                                                    title: new Image.asset(
-                                                      "$_images",
-                                                      height: 50.0,
-                                                      width: 50.0,
-                                                    ),
-                                                  ),
-                                                  new ListTile(
-                                                    title: new Text(
-                                                      currentArraylist[index]['main']
-                                                                  ['temp']
-                                                              .toString() +
-                                                          "°",
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 20.0),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )),
-                                          ),
-                                        ),
-                                          );
-                                        }))
+                                    child: getList(currentArraylist)),
                               ],
                             ),
                           ],
@@ -685,5 +612,121 @@ Widget updateWidget(String city) {
             ),
           );
         }
+      });
+}
+
+Widget getList(List list) {
+  return ListView.builder(
+
+    //Todo:Implementation Part goes to here......
+
+      scrollDirection: Axis.horizontal,
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        var format = new DateFormat('EEE/dd', 'en_US');
+        var date = format.format(new DateTime.fromMicrosecondsSinceEpoch(
+            list[index]['dt'] * 1000000,
+            isUtc: true));
+        var _timeFormat = new DateFormat.jm('en_US');
+        var _time = _timeFormat.format(new DateTime.fromMicrosecondsSinceEpoch(
+            list[index]['dt'] * 1000000,
+            isUtc: true));
+
+        switch (list[index]['weather'][0]['main']) {
+          case "haze":
+            _ListImages = 'images/haze.png';
+            break;
+          case "Snow":
+            _ListImages = 'images/snow.png';
+            break;
+          case "broken clouds":
+            _ListImages = 'images/cloudy.png';
+            break;
+          case "clear sky":
+            _ListImages = 'images/beach.png';
+            break;
+          case "scattered clouds":
+            _ListImages = 'images/storm.png';
+            break;
+          case "few clouds":
+            _ListImages = 'images/few_clouds.png';
+            break;
+          case "moderate rain":
+            _ListImages = 'images/rain.png';
+            break;
+          case "mist":
+            _ListImages = 'images/mist.png';
+            break;
+          case "smoke":
+            _ListImages = 'images/smoky.png';
+            break;
+          case "Clouds":
+            _ListImages = 'images/cloudy.png';
+            break;
+          case "Clear":
+            _ListImages = 'images/sunny.png';
+            break;
+          case "Rain":
+            _ListImages = 'images/rainy.png';
+            break;
+          default:
+            _ListImages = 'images/beach.png';
+        }
+
+        return new
+        Container(
+          width: 110.0,
+          child: Card(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(48)
+            ),
+            elevation: 2,
+            color: Colors.white38,
+            child: Container(
+              child: Center(
+                  child: new Container(
+                    child: new Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        new ListTile(
+                            title: new Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                new Text(
+                                  date,
+                                  style: new TextStyle(color: Colors.white),
+                                ),
+                                new Text(
+                                  _time,
+                                  textAlign: TextAlign.center,
+                                  style: new TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            )),
+                        new ListTile(
+                          title: new Image.asset(
+                            "$_ListImages",
+                            height: 50.0,
+                            width: 50.0,
+                          ),
+                        ),
+                        new ListTile(
+                          title: new Text(
+                            list[index]['main']['temp'].toString() + "°",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white,
+                                fontSize: 20.0),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+            ),
+          ),
+        );
       });
 }
