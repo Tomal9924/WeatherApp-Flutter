@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/ui/ThemeChanger.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -30,14 +32,6 @@ var apiResult;
 Widget listWidget;
 var _images;
 var _ListImages;
-var todayArraylist = new List();
-var tomorrowArrayList = new List();
-
-DateTime now = DateTime.now();
-final today = DateTime(now.year, now.month, now.day);
-final tomorrow = DateTime(now.year, now.month, now.day + 1);
-String formattedDateToday = DateFormat('yyyy-MM-dd').format(today);
-String formattedDateTomorrow = DateFormat('yyyy-MM-dd').format(tomorrow);
 
 class KlimateState extends State<Klimatic> {
   String _cityName;
@@ -63,10 +57,6 @@ class KlimateState extends State<Klimatic> {
       allowFontScaling: true,
     )
       ..init(context);
-    void _updateData() {
-      setState(() {});
-    }
-
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
       body: new Stack(
@@ -335,18 +325,7 @@ Widget updateWidget(String city) {
           _windSpeed = responceData['list'][0]['wind']['speed'];
 
           //2019-11-15 12:00:00
-
-          for (var time in arraylist) {
-            if (time['dt_txt'].toString().contains(formattedDateToday)) {
-              todayArraylist.add(time);
-            } else if (time['dt_txt']
-                .toString()
-                .contains(formattedDateTomorrow)) {
-              tomorrowArrayList.add(time);
-            }
-          }
           currentArraylist = arraylist;
-
 
           switch (_weatherDescriptions) {
             case "haze":
@@ -615,6 +594,11 @@ Widget updateWidget(String city) {
       });
 }
 
+Widget getTheme(BuildContext context){
+  return ChangeNotifierProvider<ThemeChanger>(
+    builder: (_)=>ThemeChanger(ThemeData.dark()),
+  );
+}
 Widget getList(List list) {
   return ListView.builder(
 

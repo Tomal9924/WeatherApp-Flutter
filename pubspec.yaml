@@ -26,6 +26,7 @@ dependencies:
   http: any
   intl: ^0.16.0
   flutter_screenutil: ^0.5.3
+  provider:
 
 dev_dependencies:
   flutter_test:
