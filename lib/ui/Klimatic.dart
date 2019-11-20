@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:weather_app/ui/ThemeChanger.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -32,7 +30,7 @@ var apiResult;
 Widget listWidget;
 var _images;
 var _ListImages;
-
+var _tDate;
 class KlimateState extends State<Klimatic> {
   String _cityName;
 
@@ -68,15 +66,16 @@ class KlimateState extends State<Klimatic> {
             margin: new EdgeInsets.fromLTRB(20, 48, 0, 0),
             decoration: new BoxDecoration(color: Colors.green.shade400),
             child: new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 new Container(
                   child: new Text(
-                    "Quick Weather",
-                    style: new TextStyle(fontSize: 24.0, color: Colors.white),
+                    _tDate.toString(),
+                    style: new TextStyle(fontSize: 16.0, color: Colors.white60),
                   ),
                 ),
                 new Container(
-                  margin: new EdgeInsets.fromLTRB(120, 0, 0, 0),
+                  margin: const EdgeInsets.only(right: 16),
                   child: new IconButton(
                       icon: new Icon(
                         Icons.search,
@@ -176,14 +175,6 @@ class InfoScreen extends State<TakeLocation> {
       ),
       body: new Stack(
         children: <Widget>[
-          new Center(
-            child: new Image.asset(
-              "images/white_snow.png",
-              height: double.infinity,
-              width: double.infinity,
-              fit: BoxFit.fill,
-            ),
-          ),
           new ListView(
             children: <Widget>[
               new ListTile(
@@ -196,61 +187,25 @@ class InfoScreen extends State<TakeLocation> {
                     ),
                   )),
               new ListTile(
-                  title: new FlatButton(
-                      color: Colors.lightBlue.shade400,
-                      textColor: Colors.white,
-                      onPressed: () {
-                        Navigator.pop(
-                            context, {'location': _getLocationController.text});
-                      },
-                      child: new Text("Get Weather"))),
-              new ListTile(
-                title: new Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    "Theme",
-                    style: new TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  title: Container(
+                    margin: EdgeInsets.only(left: 70, right: 70, top: 16),
+                    child: new RaisedButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(36.0),
+                            side: BorderSide(color: Colors.white12)
+                        ),
+                        color: Colors.green.shade400,
+                        elevation: 5,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.all(12.0),
+                        onPressed: () {
+                          Navigator.pop(
+                              context,
+                              {'location': _getLocationController.text});
+                        },
+                        child: new Text("Search")
                     ),
-                  ),
-                ),
-              ),
-              ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      "Dark",
-                      style: TextStyle(color: Colors.black87),
-                    ),
-                    new Radio<int>(
-                        activeColor: Colors.brown,
-                        value: 0,
-                        groupValue: radiovalue,
-                        onChanged: handleRadioValueChanged),
-                  ],
-                ),
-                subtitle: Divider(
-                  color: Colors.grey,
-                  height: 1,
-                ),
-              ),
-              ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      "Light",
-                      style: TextStyle(color: Colors.black87),
-                    ),
-                    new Radio<int>(
-                        activeColor: Colors.brown,
-                        value: 1,
-                        groupValue: radiovalue,
-                        onChanged: handleRadioValueChanged),
-                  ],
-                ),
+                  )
               ),
               new ListTile(
                 title: new Padding(
@@ -306,7 +261,9 @@ class InfoScreen extends State<TakeLocation> {
       ),
     );
   }
+
 }
+
 
 Widget updateWidget(String city) {
   //Todo:-------------------------JSON Calling---------------------------------
@@ -324,7 +281,13 @@ Widget updateWidget(String city) {
           _weatherDescriptions = responceData['list'][0]['weather'][0]['main'];
           _windSpeed = responceData['list'][0]['wind']['speed'];
 
+          var _todayDateFormate = new DateFormat.yMMMMd().add_jm();
+          _tDate =
+              _todayDateFormate.format(new DateTime.fromMicrosecondsSinceEpoch(
+                  arraylist[0]['dt'] * 1000000,
+                  isUtc: true));
           //2019-11-15 12:00:00
+          print(_tDate);
           currentArraylist = arraylist;
 
           switch (_weatherDescriptions) {
@@ -594,11 +557,6 @@ Widget updateWidget(String city) {
       });
 }
 
-Widget getTheme(BuildContext context){
-  return ChangeNotifierProvider<ThemeChanger>(
-    builder: (_)=>ThemeChanger(ThemeData.dark()),
-  );
-}
 Widget getList(List list) {
   return ListView.builder(
 
@@ -611,6 +569,7 @@ Widget getList(List list) {
         var date = format.format(new DateTime.fromMicrosecondsSinceEpoch(
             list[index]['dt'] * 1000000,
             isUtc: true));
+
         var _timeFormat = new DateFormat.jm('en_US');
         var _time = _timeFormat.format(new DateTime.fromMicrosecondsSinceEpoch(
             list[index]['dt'] * 1000000,
@@ -714,3 +673,14 @@ Widget getList(List list) {
         );
       });
 }
+
+class Bloc {
+  // ignore: close_sinks
+  final _themeController = StreamController<bool>();
+
+  get changeTheme => _themeController.sink.add;
+
+  get darkThemeEnabled => _themeController.stream;
+}
+
+final bloc = Bloc();
