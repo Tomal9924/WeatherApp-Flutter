@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,8 @@ var apiResult;
 Widget listWidget;
 var _images;
 var _ListImages;
-var _tDate;
+var _tDate = "";
+
 class KlimateState extends State<Klimatic> {
   String _cityName;
 
@@ -38,12 +40,16 @@ class KlimateState extends State<Klimatic> {
     Map results = await Navigator.of(context)
         .push(new MaterialPageRoute<Map>(builder: (BuildContext context) {
       return new TakeLocation();
-    }));
+    }
+    )
+    );
     if (results != null && results.containsKey('location')) {
-      // print(results['location'].toString());
       _cityName = results['location'];
     }
+    /* getRadioValueData();*/
   }
+
+  String val = "";
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +118,14 @@ class KlimateState extends State<Klimatic> {
       ),
     );
   }
+
+/*Future<int> getRadioValueData() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int radio_value=prefs.getInt("radiovalue");
+    print("Showed: $radio_value");
+    return radio_value;
+
+  }*/
 }
 
 //Todo:-------------------Api Call--------------------------------
@@ -125,11 +139,7 @@ Future<Map> getWeather(String appId, String City, String unit) async {
     var data = jsonDecode(response.body);
     return data;
   } else {
-    new Center(
-        child: new Text(
-          "Data Not Found",
-          style: new TextStyle(color: Colors.white, fontSize: 35.0),
-        ));
+    throw Exception('Failed to load post');
   }
 }
 
@@ -143,27 +153,25 @@ class TakeLocation extends StatefulWidget {
 
 class InfoScreen extends State<TakeLocation> {
   var _getLocationController = new TextEditingController();
-  int radiovalue = null;
+  int radiovalue = 2;
+  int choice;
 
   void handleRadioValueChanged(int value) {
     setState(() {
       radiovalue = value;
       switch (radiovalue) {
-        case 0:
-          print(value);
-          break;
-        case 1:
-          print(value);
-          break;
         case 2:
           _unitText = "metric";
+          choice = value;
           break;
         case 3:
           _unitText = "imperial";
+          choice = value;
           break;
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +238,8 @@ class InfoScreen extends State<TakeLocation> {
                     new Radio<int>(
                         activeColor: Colors.brown,
                         value: 2,
-                        groupValue: radiovalue,
+                        groupValue: radiovalue
+                        /*savedValue()*/,
                         onChanged: handleRadioValueChanged),
                   ],
                 ),
@@ -250,7 +259,7 @@ class InfoScreen extends State<TakeLocation> {
                     new Radio<int>(
                         activeColor: Colors.brown,
                         value: 3,
-                        groupValue: radiovalue,
+                        groupValue: radiovalue /*savedValue()*/,
                         onChanged: handleRadioValueChanged),
                   ],
                 ),
@@ -262,9 +271,19 @@ class InfoScreen extends State<TakeLocation> {
     );
   }
 
+/*Future <bool>_saveRadioValueData(int value) async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt("radiovalue", value);
+    print('saved: $value');
+    return prefs.commit();
+  }
+
+
+  savedValue() {
+    int _value=radiovalue;
+    _saveRadioValueData(_value).then((bool comitted){});
+  }*/
 }
-
-
 Widget updateWidget(String city) {
   //Todo:-------------------------JSON Calling---------------------------------
 
@@ -364,7 +383,7 @@ Widget updateWidget(String city) {
                                       margin: new EdgeInsets.fromLTRB(
                                           8, 0, 0, 20),
                                       child: new Text(
-                                        "°C",
+                                        _unitText == "metric" ? "°C" : "°F",
                                         style: new TextStyle(
                                             fontSize: 22.0,
                                             color: Colors.white,
@@ -674,13 +693,3 @@ Widget getList(List list) {
       });
 }
 
-class Bloc {
-  // ignore: close_sinks
-  final _themeController = StreamController<bool>();
-
-  get changeTheme => _themeController.sink.add;
-
-  get darkThemeEnabled => _themeController.stream;
-}
-
-final bloc = Bloc();
