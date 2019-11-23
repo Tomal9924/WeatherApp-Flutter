@@ -4,7 +4,6 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:weather_app/util/utils.dart' as util;
@@ -55,67 +54,72 @@ class KlimateState extends State<Klimatic> {
   Widget build(BuildContext context) {
     listWidget = updateWidget(_cityName);
     // TODO: implement build
-    ScreenUtil.instance = ScreenUtil(
-      width: 1125,
-      height: 2436,
-      allowFontScaling: true,
-    )
-      ..init(context);
     return new Scaffold(
       backgroundColor: Colors.green.shade400,
-      body: new Stack(
-        children: <Widget>[
-          Align(
-            alignment: Alignment.topRight,
-          ),
-          new Container(
-            margin: new EdgeInsets.fromLTRB(20, 48, 0, 0),
-            decoration: new BoxDecoration(color: Colors.green.shade400),
-            child: new Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: new ListView(
+          scrollDirection: Axis.vertical,
+          children: <Widget>[
+            new Stack(
               children: <Widget>[
-                new Container(
-                  child: new Text(
-                    _tDate.toString(),
-                    style: new TextStyle(fontSize: 16.0, color: Colors.white60),
-                  ),
+                Align(
+                  alignment: Alignment.topRight,
                 ),
                 new Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  child: new IconButton(
-                      icon: new Icon(
-                        Icons.search,
-                        color: Colors.white,
+                  margin: new EdgeInsets.fromLTRB(20, 16, 0, 0),
+                  decoration: new BoxDecoration(color: Colors.green.shade400),
+                  child: new Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      new Container(
+                        child: new Text(
+                          _tDate.toString() == null ||
+                              _tDate.toString() == "" || _tDate
+                              .toString()
+                              .isEmpty ? "Weather App" : _tDate.toString(),
+                          style: new TextStyle(
+                              fontSize: 16.0, color: Colors.white60),
+                        ),
                       ),
-                      onPressed: () {
-                        goToTakeDirectionScreen(context);
-                      }),
-                )
+                      new Container(
+                        margin: const EdgeInsets.only(right: 16),
+                        child: new IconButton(
+                            icon: new Icon(
+                              Icons.search,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              goToTakeDirectionScreen(context);
+                            }),
+                      )
+                    ],
+                  ),
+                ),
+                new Column(
+                  children: <Widget>[
+                    new Container(
+                        margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
+                        child: new Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            new IconButton(
+                                icon: new Icon(
+                                  Icons.location_on,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {}),
+                            new PlaceText(
+                                '${_cityName == null
+                                    ? util.defaultCity
+                                    : _cityName}')
+                          ],
+                        )),
+                  ],
+                ),
+                listWidget
               ],
             ),
-          ),
-          new Column(
-            children: <Widget>[
-              new Container(
-                  margin: new EdgeInsets.fromLTRB(0, 100, 0, 0),
-                  child: new Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      new IconButton(
-                          icon: new Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {}),
-                      new PlaceText(
-                          '${_cityName == null ? util.defaultCity : _cityName}')
-                    ],
-                  )),
-            ],
-          ),
-          listWidget
-        ],
-      ),
+          ],
+        )
     );
   }
 
@@ -139,7 +143,9 @@ Future<Map> getWeather(String appId, String City, String unit) async {
     var data = jsonDecode(response.body);
     return data;
   } else {
-    throw Exception('Failed to load post');
+    CircularProgressIndicator(
+      valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+    );
   }
 }
 
@@ -329,7 +335,7 @@ Widget updateWidget(String city) {
               _images = 'images/few_clouds.png';
               break;
             case "moderate rain":
-              _images = 'images/rain.png';
+              _images = 'images/rainy.png';
               break;
             case "mist":
               _images = 'images/mist.png';
@@ -566,10 +572,25 @@ Widget updateWidget(String city) {
               ));
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
-        } else {
-          return new Center(
-            child: new CircularProgressIndicator(
-              valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+        } else if (snapshot.data == null) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: new Center(
+              child: new CircularProgressIndicator(
+                valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+          );
+        }
+        else {
+          return Container(
+            margin: const EdgeInsets.only(top: 254, left: 16),
+            child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                new Text("No Data Found",
+                  style: new TextStyle(fontSize: 48, color: Colors.white),)
+              ],
             ),
           );
         }
@@ -614,7 +635,7 @@ Widget getList(List list) {
             _ListImages = 'images/few_clouds.png';
             break;
           case "moderate rain":
-            _ListImages = 'images/rain.png';
+            _ListImages = 'images/rainy.png';
             break;
           case "mist":
             _ListImages = 'images/mist.png';

@@ -25,7 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   http: any
   intl: ^0.16.0
-  flutter_screenutil: ^0.5.3
+  splashscreen:
   provider:
   shared_preferences: ^ 0.5.4
 

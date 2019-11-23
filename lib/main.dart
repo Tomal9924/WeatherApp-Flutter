@@ -4,11 +4,11 @@ import 'package:weather_app/ui/Klimatic.dart';
 void main() {
   runApp(
       new MaterialApp(
-    title: "Klimatic",
-    theme: ThemeData(fontFamily: 'Roboto'),
-    debugShowCheckedModeBanner: false,
-    home: new Klimatic(),
-  ));
+        title: "Klimatic",
+        theme: ThemeData(fontFamily: 'Roboto'),
+        debugShowCheckedModeBanner: false,
+        home: new Klimatic(),
+      ));
 }
 
 
