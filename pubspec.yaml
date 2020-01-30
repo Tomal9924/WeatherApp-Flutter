@@ -27,6 +27,7 @@ dependencies:
   intl: ^0.16.0
   splashscreen:
   provider:
+  flutter_typeahead:
   shared_preferences: ^ 0.5.4
 
 dev_dependencies:

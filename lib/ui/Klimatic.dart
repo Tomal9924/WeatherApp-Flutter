@@ -4,8 +4,10 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:weather_app/ui/Cities.dart';
 import 'package:weather_app/util/utils.dart' as util;
 
 import 'TextStyle.dart';
@@ -34,6 +36,7 @@ var _tDate = "";
 
 class KlimateState extends State<Klimatic> {
   String _cityName;
+  Cities cityDatas;
 
   Future goToTakeDirectionScreen(BuildContext context) async {
     Map results = await Navigator.of(context)
@@ -55,7 +58,7 @@ class KlimateState extends State<Klimatic> {
     listWidget = updateWidget(_cityName);
     // TODO: implement build
     return new Scaffold(
-      backgroundColor: Colors.green.shade400,
+      backgroundColor: Colors.black87,
         body: new ListView(
           scrollDirection: Axis.vertical,
           children: <Widget>[
@@ -66,7 +69,7 @@ class KlimateState extends State<Klimatic> {
                 ),
                 new Container(
                   margin: new EdgeInsets.fromLTRB(20, 16, 0, 0),
-                  decoration: new BoxDecoration(color: Colors.green.shade400),
+                  decoration: new BoxDecoration(color: Colors.black87),
                   child: new Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -122,14 +125,6 @@ class KlimateState extends State<Klimatic> {
         )
     );
   }
-
-/*Future<int> getRadioValueData() async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int radio_value=prefs.getInt("radiovalue");
-    print("Showed: $radio_value");
-    return radio_value;
-
-  }*/
 }
 
 //Todo:-------------------Api Call--------------------------------
@@ -161,6 +156,7 @@ class InfoScreen extends State<TakeLocation> {
   var _getLocationController = new TextEditingController();
   int radiovalue = 2;
   int choice;
+  Cities cityDatas;
 
   void handleRadioValueChanged(int value) {
     setState(() {
@@ -178,14 +174,13 @@ class InfoScreen extends State<TakeLocation> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("Change City"),
-        backgroundColor: Colors.green.shade400,
+        backgroundColor: Colors.black87,
       ),
       body: new Stack(
         children: <Widget>[
@@ -193,11 +188,56 @@ class InfoScreen extends State<TakeLocation> {
             children: <Widget>[
               new ListTile(
                   title: Container(
-                    child: new TextField(
-                      style: new TextStyle(fontSize: 24, height: 2),
-                      decoration: new InputDecoration(hintText: "Enter City"),
-                      keyboardType: TextInputType.text,
-                      controller: _getLocationController,
+                    child: TypeAheadField(
+                      textFieldConfiguration: TextFieldConfiguration(
+                          controller: _getLocationController,
+                          autofocus: false,
+                          keyboardType: TextInputType.text,
+                          maxLines: 1,
+                          onChanged: (val) {
+                            setState(() {});
+                          },
+                          decoration: new InputDecoration(
+                            labelText: "Location",
+                            focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.black87)),
+                            enabledBorder: UnderlineInputBorder(
+                                borderSide:
+                                BorderSide(color: Colors.grey)),
+                            icon: new Icon(
+                              Icons.location_city,
+                              color: Colors.grey,
+                            ),
+                            isDense: true,
+                          )),
+                      suggestionsCallback: (pattern) async {
+
+                        return await getCityData(pattern,_getLocationController.text);
+                      },
+                      itemBuilder: (context, suggestion) {
+                        Cities cities = suggestion;
+                        return ListTile(
+                          leading: Icon(Icons.location_city),
+                          title: Text(cities.cityName),
+                          subtitle: Row(
+                            children: <Widget>[
+                              Text(cities.countryName + ","),
+                              Text(cities.regionName),
+                            ],
+                          ),
+                        );
+                      },
+                      onSuggestionSelected: (suggestion) {
+                         cityDatas= suggestion;
+                         setState(() {
+                          _getLocationController.text = cityDatas.cityName;
+                        });
+
+
+                      },
+                      hideSuggestionsOnKeyboardHide: true,
+                      hideOnError: true,
                     ),
                   )),
               new ListTile(
@@ -277,18 +317,26 @@ class InfoScreen extends State<TakeLocation> {
     );
   }
 
-/*Future <bool>_saveRadioValueData(int value) async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt("radiovalue", value);
-    print('saved: $value');
-    return prefs.commit();
+  Future getCityData(String pattern,String city) async {
+    if (pattern.isNotEmpty) {
+      var result = await http.get(
+          "https://restcountries.eu/rest/v2/capital/$city");
+      if (result.statusCode == 200) {
+        try {
+          var map = json.decode(result.body);
+          List<Cities> _citiList = List.generate(map.length, (index) {
+            return Cities.fromMap(map[index]);
+          });
+          return _citiList;
+        } catch (error) {
+          return [];
+        }
+      } else {
+        Container();
+        return [];
+      }
+    }
   }
-
-
-  savedValue() {
-    int _value=radiovalue;
-    _saveRadioValueData(_value).then((bool comitted){});
-  }*/
 }
 Widget updateWidget(String city) {
   //Todo:-------------------------JSON Calling---------------------------------
@@ -712,5 +760,7 @@ Widget getList(List list) {
           ),
         );
       });
+
+
 }
 
